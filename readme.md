@@ -117,4 +117,4 @@ The "run_analysis.R" script will perform the following actions :
 
 ## **Data dictionary**
 
-See [./data_dictionary.md](./data_dictionary.md)
+See ./data_dictionary.md
