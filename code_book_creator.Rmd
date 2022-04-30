@@ -1,6 +1,8 @@
 ---
-title: "data_direcotry"
-output: github_document
+title: "code_book"
+output:
+  md_document:
+    variant:  markdown_github
 ---
 
 ```{r setup, include=FALSE}
@@ -49,7 +51,7 @@ for(i in df_describeclean$variable){if(i == "mean_value"){df_describeclean$value
 kable(df_describeclean)
 ```
 
-## df_test 
+## df_test
 
 Contains the data from the "./data/UCI HAR Dataset/test/X_test.txt" file
 
