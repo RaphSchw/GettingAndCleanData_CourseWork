@@ -1,0 +1,35 @@
+---
+title: "data_direcotry"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+Sys.setenv("LOG_LEVEL" = "INFO")
+source("run_analysis.R")
+```
+
+## Contents of the df_clean dataframe 
+
+The df_clean dataframe is the final form of the transformed data and is a long form of the original data. In this data frame both training and test data observations are contained.
+
+Number of observations :
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+print(nrow(df_clean))
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+
+library(dplyr)
+library(knitr)
+
+df_describeclean <- data.frame(variables = names(df_clean))
+description_values <- "The mean of the original raw data observations"
+for(i in df_describeclean$variables){if(i == "mean_value"){df_describeclean$description[df_describeclean$variables == i] <- description_values}else{df_describeclean$description[df_describeclean$variables == i] <- distinct(df_clean[i])}}
+
+kable(df_describeclean)
+```

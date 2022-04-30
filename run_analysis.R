@@ -14,37 +14,39 @@
 
 library(dplyr)
 library(tibble)
+library(stringr)
 library(reshape2)
+library(rlog)
 
-print("Scanning whether files are installed and maybe installing")
+log_debug("Scanning whether files are installed and maybe installing")
 if(!file.exists("./data")){dir.create(path = "./data")} ##Create the data directory if not done already
 if(!file.exists("./data/sources.zip")){download.file(url = "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip", destfile = "./data/sources.zip")} ##Download data if not done already
 if(!file.exists("./data/UCI HAR Dataset")){unzip(zipfile = "./data/sources.zip", exdir = "./data")} ##Unzip data into /data if not done already
-print("Data folder is created and data downloaded")
+log_debug("Data folder is created and data downloaded")
 path_x_test <- "./data/UCI HAR Dataset/test/X_test.txt"
 path_x_train <- "./data/UCI HAR Dataset/train/X_train.txt"
 
-print("Reading in the test data")
+log_debug("Reading in the test data")
 df_test <- read.table(file = path_x_test)
-print("Tibble created for test data")
+log_debug("Tibble created for test data")
 
-print("Reading in the train data")
+log_debug("Reading in the train data")
 df_train <- read.table(file = path_x_train)
-print("Tibble created for train data")
+log_debug("Tibble created for train data")
 
-print("Reading in feature names and adding to the tibble")
+log_debug("Reading in feature names and adding to the tibble")
 path_feature_names <- "./data/UCI HAR Dataset/features.txt"
 feature_names <- read.table(path_feature_names)$V2
 names(df_test) <- feature_names
 names(df_train) <- feature_names
 
-print("Reading in the test participants and adding to tibble")
+log_debug("Reading in the test participants and adding to tibble")
 path_test_participants <- "./data/UCI HAR Dataset/test/subject_test.txt"
 test_participants <-as.numeric(scan(path_test_participants, what="", sep="\n"))
 df_test$participant <- test_participants
 df_test$set <- "test"
 
-print("Reading in the train participants and adding to tibble")
+log_debug("Reading in the train participants and adding to tibble")
 path_train_participants <- "./data/UCI HAR Dataset/train/subject_train.txt"
 train_participants <-as.numeric(scan(path_train_participants, what="", sep="\n"))
 df_train$participant <- train_participants
@@ -61,18 +63,18 @@ path_train_labels <- "./data/UCI HAR Dataset/train/y_train.txt"
 train_labels <- scan(path_train_labels, what="", sep="\n") ##Read the labels document in
 df_train$activity <- train_labels
 
-print("Merge train and test data and melt it down")
+log_debug("Merge train and test data and melt it down")
 df_merged <- rbind(df_train, df_test)
 df_merged <- df_merged %>% select(names(df_merged)[grepl(names(df_merged), pattern = "((mean\\(\\)|std\\(\\))|activity|participant|set)")]) ##Remove the columns, which do not concern std or mean measurements
-print(unique(df_merged$set)); print(ncol(df_merged)) ##A little verificatio that there was no loss during the merger process
+log_debug(unique(df_merged$set)); log_debug(ncol(df_merged)) ##A little verificatio that there was no loss during the merger process
 df_merged <- melt(df_merged, id.vars = c("activity", "set", "participant")) ##Melt down the data frame to make it long
-print(unique(df_merged$set)); print(length(unique(df_merged$variable))) ##A little verificatio that there was no loss during the melting process
+log_debug(unique(df_merged$set)); log_debug(length(unique(df_merged$variable))) ##A little verificatio that there was no loss during the melting process
 
-print("Give specific acivity names")
+log_debug("Give specific acivity names")
 df_merged$activity <- lapply(df_merged$activity, function(y) as.character(activity_labels$understandable[activity_labels$number == y])) ##Use the earlier created dataframe "activity_labels" to map the activity IDs to their names 
 df_merged$activity <- as.character(df_merged$activity)
 
-print('Create tidy data set')
+log_debug('Create tidy data set')
 df_clean <- df_merged %>% group_by(set, participant,activity, variable) %>% summarise(mean_value = mean(value)) ##Extract the mean for the original measurements
 df_clean <- df_clean %>% mutate(measurement = str_extract(variable, pattern = "(mean|std)"),dimension = str_extract(variable, pattern = "(X|Y|Z)$")) ##from this line on we are basically just splitting up the original column names to make sure that there is not one column with multiple variables and stay in line with tidy data
 df_clean <- df_clean %>% mutate(variable = gsub(pattern = "-(mean\\(\\)|std\\(\\))-?(X|Y|Z)?", replacement = "", x = variable))
