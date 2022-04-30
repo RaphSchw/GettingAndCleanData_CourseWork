@@ -1,0 +1,90 @@
+## You should create one R script called run_analysis.R that does the following: 
+##
+## Merges the training and the test sets to create one data set.
+##
+## Extracts only the measurements on the mean and standard deviation for each measurement.
+##
+## Uses descriptive activity names to name the activities in the data set
+##
+## Appropriately labels the data set with descriptive variable names.
+##
+## From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+##
+## http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones
+
+library(dplyr)
+library(tibble)
+library(reshape2)
+
+print("Scanning whether files are installed and maybe installing")
+if(!file.exists("./data")){dir.create(path = "./data")} ##Create the data directory if not done already
+if(!file.exists("./data/sources.zip")){download.file(url = "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip", destfile = "./data/sources.zip")} ##Download data if not done already
+if(!file.exists("./data/UCI HAR Dataset")){unzip(zipfile = "./data/sources.zip", exdir = "./data")} ##Unzip data into /data if not done already
+print("Data folder is created and data downloaded")
+path_x_test <- "./data/UCI HAR Dataset/test/X_test.txt"
+path_x_train <- "./data/UCI HAR Dataset/train/X_train.txt"
+
+print("Reading in the test data")
+df_test <- read.table(file = path_x_test)
+print("Tibble created for test data")
+
+print("Reading in the train data")
+df_train <- read.table(file = path_x_train)
+print("Tibble created for train data")
+
+print("Reading in feature names and adding to the tibble")
+path_feature_names <- "./data/UCI HAR Dataset/features.txt"
+feature_names <- read.table(path_feature_names)$V2
+names(df_test) <- feature_names
+names(df_train) <- feature_names
+
+print("Reading in the test participants and adding to tibble")
+path_test_participants <- "./data/UCI HAR Dataset/test/subject_test.txt"
+test_participants <-as.numeric(scan(path_test_participants, what="", sep="\n"))
+df_test$participant <- test_participants
+df_test$set <- "test"
+
+print("Reading in the train participants and adding to tibble")
+path_train_participants <- "./data/UCI HAR Dataset/train/subject_train.txt"
+train_participants <-as.numeric(scan(path_train_participants, what="", sep="\n"))
+df_train$participant <- train_participants
+df_train$set <- "train"
+
+path_labels_descriptive <- "./data/UCI HAR Dataset/activity_labels.txt"
+activity_labels <- read.table(path_labels_descriptive, col.names = c("number", "understandable")) ##Create a mapping table between the activity numbers and names
+
+path_test_labels <- "./data/UCI HAR Dataset/test/y_test.txt"
+test_labels <- scan(path_test_labels, what="", sep="\n") ##Read the labels document in
+df_test$activity <- test_labels
+
+path_train_labels <- "./data/UCI HAR Dataset/train/y_train.txt"
+train_labels <- scan(path_train_labels, what="", sep="\n") ##Read the labels document in
+df_train$activity <- train_labels
+
+print("Merge train and test data and melt it down")
+df_merged <- rbind(df_train, df_test)
+df_merged <- df_merged %>% select(names(df_merged)[grepl(names(df_merged), pattern = "((mean\\(\\)|std\\(\\))|activity|participant|set)")])
+print(unique(df_merged$set)); print(ncol(df_merged))
+df_merged <- melt(df_merged, id.vars = c("activity", "set", "participant"))
+print(unique(df_merged$set)); print(length(unique(df_merged$variable)))
+
+print("Give specific acivity names")
+df_merged$activity <- lapply(df_merged$activity, function(y) as.character(activity_labels$understandable[activity_labels$number == y]))
+df_merged$activity <- as.character(df_merged$activity)
+
+print('Create tidy data set')
+df_clean <- df_merged %>% group_by(set, participant,activity, variable) %>% summarise(mean_value = mean(value))
+df_clean <- df_clean %>% mutate(measurement = str_extract(variable, pattern = "(mean|std)"),dimension = str_extract(variable, pattern = "(X|Y|Z)$"))
+df_clean <- df_clean %>% mutate(variable = gsub(pattern = "-(mean\\(\\)|std\\(\\))-?(X|Y|Z)?", replacement = "", x = variable))
+df_clean <- df_clean %>% mutate(acceleration_signal = str_extract(variable, pattern = "(Body|Gravity)"), sensor_signal = str_extract(variable, pattern = "(Acc|Gyro)"))
+
+df_clean$jerk_signal <- lapply(df_clean$variable, function(y) if(str_detect(string = y, pattern = "Jerk")==TRUE){"yes"}else{NA})
+df_clean$jerk_signal <- as.character(df_clean$jerk_signal)
+
+df_clean$magnitude <- lapply(df_clean$variable, function(y) if(str_detect(string = y, pattern = "Mag")==TRUE){"yes"}else{NA})
+df_clean$magnitude <- as.character(df_clean$magnitude)
+
+df_clean$time_signal <- as.character(lapply(df_clean$variable, function(y) if(substr(y, start = 1, stop = 1)=="t"){"yes"}else{NA}))
+df_clean$frequency_signal <- as.character(lapply(df_clean$variable, function(y) if(substr(y, start = 1, stop = 1)=="f"){"yes"}else{NA}))
+
+df_clean <- df_clean %>% select(-variable)
