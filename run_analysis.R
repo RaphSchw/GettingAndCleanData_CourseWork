@@ -63,18 +63,18 @@ df_train$activity <- train_labels
 
 print("Merge train and test data and melt it down")
 df_merged <- rbind(df_train, df_test)
-df_merged <- df_merged %>% select(names(df_merged)[grepl(names(df_merged), pattern = "((mean\\(\\)|std\\(\\))|activity|participant|set)")])
-print(unique(df_merged$set)); print(ncol(df_merged))
-df_merged <- melt(df_merged, id.vars = c("activity", "set", "participant"))
-print(unique(df_merged$set)); print(length(unique(df_merged$variable)))
+df_merged <- df_merged %>% select(names(df_merged)[grepl(names(df_merged), pattern = "((mean\\(\\)|std\\(\\))|activity|participant|set)")]) ##Remove the columns, which do not concern std or mean measurements
+print(unique(df_merged$set)); print(ncol(df_merged)) ##A little verificatio that there was no loss during the merger process
+df_merged <- melt(df_merged, id.vars = c("activity", "set", "participant")) ##Melt down the data frame to make it long
+print(unique(df_merged$set)); print(length(unique(df_merged$variable))) ##A little verificatio that there was no loss during the melting process
 
 print("Give specific acivity names")
-df_merged$activity <- lapply(df_merged$activity, function(y) as.character(activity_labels$understandable[activity_labels$number == y]))
+df_merged$activity <- lapply(df_merged$activity, function(y) as.character(activity_labels$understandable[activity_labels$number == y])) ##Use the earlier created dataframe "activity_labels" to map the activity IDs to their names 
 df_merged$activity <- as.character(df_merged$activity)
 
 print('Create tidy data set')
-df_clean <- df_merged %>% group_by(set, participant,activity, variable) %>% summarise(mean_value = mean(value))
-df_clean <- df_clean %>% mutate(measurement = str_extract(variable, pattern = "(mean|std)"),dimension = str_extract(variable, pattern = "(X|Y|Z)$"))
+df_clean <- df_merged %>% group_by(set, participant,activity, variable) %>% summarise(mean_value = mean(value)) ##Extract the mean for the original measurements
+df_clean <- df_clean %>% mutate(measurement = str_extract(variable, pattern = "(mean|std)"),dimension = str_extract(variable, pattern = "(X|Y|Z)$")) ##from this line on we are basically just splitting up the original column names to make sure that there is not one column with multiple variables and stay in line with tidy data
 df_clean <- df_clean %>% mutate(variable = gsub(pattern = "-(mean\\(\\)|std\\(\\))-?(X|Y|Z)?", replacement = "", x = variable))
 df_clean <- df_clean %>% mutate(acceleration_signal = str_extract(variable, pattern = "(Body|Gravity)"), sensor_signal = str_extract(variable, pattern = "(Acc|Gyro)"))
 
@@ -87,4 +87,4 @@ df_clean$magnitude <- as.character(df_clean$magnitude)
 df_clean$time_signal <- as.character(lapply(df_clean$variable, function(y) if(substr(y, start = 1, stop = 1)=="t"){"yes"}else{NA}))
 df_clean$frequency_signal <- as.character(lapply(df_clean$variable, function(y) if(substr(y, start = 1, stop = 1)=="f"){"yes"}else{NA}))
 
-df_clean <- df_clean %>% select(-variable)
+df_clean <- df_clean %>% select(-variable) ##Remove the column with the original data names
