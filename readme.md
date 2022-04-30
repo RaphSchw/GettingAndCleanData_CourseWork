@@ -100,22 +100,20 @@ The "run_analysis.R" script will perform the following actions :
 
 ## Data structure df_clean
 
-+———————+———————————————————————————————————————+ \| Variable \| Description \| +=====================+=====================================================================================================================+ \| set \| The original dataset it came from: "test", "train" \| +———————+———————————————————————————————————————+ \| participant \| The participant number obtained from the raw data \| +———————+———————————————————————————————————————+ \| activity \| The descriptive activity name: "LAYING", "SITTING", "STANDING", "WALKING", "WALKING_DOWNSTAIRS", "WALKING_UPSTAIRS" \| +———————+———————————————————————————————————————+ \| mean_value \| The mean value obtained for the measurement \| +———————+———————————————————————————————————————+ \| measurement \| The type of measurement: "mean", "std" \| +———————+———————————————————————————————————————+ \| dimension \| The dimension/axis of the original signal \| +———————+———————————————————————————————————————+ \| acceleration_signal \| An indication whether the acceleration signal was a body or gravity acceleration signals: "Body", "Gravity" \| +———————+———————————————————————————————————————+ \| sensor_signal \| An indication whether the signals come from the accelerometer or gyroscope: "Acc", "Gyro" \| +———————+———————————————————————————————————————+ \| jerk_signal \| An indication whether the mean_value has been transformed into a jerk signal: "yes", NA \| +———————+———————————————————————————————————————+ \| magnitude \| An indication whether the magnitude has been derived for this mean_value: "yes", NA \| +———————+———————————————————————————————————————+ \| time_signal \| Indication whether the mean_value concerns a time domain signal: "yes", NA \| +———————+———————————————————————————————————————+ \| frequency_signal \| Indication whether the mean_value concerns a time frequency signal: "yes", NA \| +———————+———————————————————————————————————————+
-
-| Col1 | Col2 |
-|------|------|
-|      |      |
-|      |      |
-|      |      |
-|      |      |
-|      |      |
-|      |      |
-|      |      |
-|      |      |
-|      |      |
-|      |      |
-|      |      |
-|      |      |
+| Variable            | Description                                                                                                         |
+|---------------------|---------------------------------------------------------------------------------------------------------------------|
+| set                 | The original dataset it came from: "test", "train"                                                                  |
+| participant         | The participant number obtained from the raw data                                                                   |
+| activity            | The descriptive activity name: "LAYING", "SITTING", "STANDING", "WALKING", "WALKING_DOWNSTAIRS", "WALKING_UPSTAIRS" |
+| mean_value          | The mean value obtained for the measurement                                                                         |
+| measurement         | The type of measurement: "mean", "std"                                                                              |
+| dimension           | The dimension/axis of the original signal: "X", "Y", "Z"                                                            |
+| acceleration_signal | An indication whether the acceleration signal was a body or gravity acceleration signals: "Body", "Gravity"         |
+| sensor_signal       | An indication whether the signals come from the accelerometer or gyroscope: "Acc", "Gyro"                           |
+| jerk_signal         | An indication whether the mean_value has been transformed into a jerk signal: "yes", NA                             |
+| magnitude           | An indication whether the magnitude has been derived for this mean_value: "yes", NA                                 |
+| time_signal         | Indication whether the mean_value concerns a time domain signal: "yes", NA                                          |
+| frequency_signal    | Indication whether the mean_value concerns a time frequency signal: "yes", NA                                       |
 
 ## **Data dictionary**
 
